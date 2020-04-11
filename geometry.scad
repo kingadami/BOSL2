@@ -61,6 +61,7 @@ function _point_above_below_segment(point, edge) =
 //   c = Third point.
 //   eps = Acceptable variance.  Default: `EPSILON` (1e-9)
 function collinear(a, b, c, eps=EPSILON) =
+	approx(a,b,eps=eps)? true :
 	distance_from_line([a,b], c) < eps;
 
 
@@ -818,8 +819,10 @@ function polygon_line_intersection(poly, line, bounded=false, eps=EPSILON) =
 function points_are_collinear(points, eps=EPSILON) =
 	let(
 		a = furthest_point(points[0], points),
-		b = furthest_point(points[a], points)
-	) all([for (pt = points) collinear(points[a], points[b], pt, eps=eps)]);
+		b = furthest_point(points[a], points),
+		pa = points[a],
+		pb = points[b]
+	) all([for (pt = points) collinear(pa, pb, pt, eps=eps)]);
 
 
 // Function: coplanar()
@@ -1028,12 +1031,17 @@ function find_noncollinear_points(points) =
 	let(
 		a = 0,
 		b = furthest_point(points[a], points),
+		pa = points[a],
+		pb = points[b],
 		c = max_index([
 			for (p=points)
+				(approx(p,pa) || approx(p,pb))? 0 :
 				sin(vector_angle(points[a]-p,points[b]-p)) *
 					norm(p-points[a]) * norm(p-points[b])
 		])
-	) [a, b, c];
+	)
+	assert(c!=a && c!=b, "Cannot find three noncollinear points in pointlist.")
+	[a, b, c];
 
 
 // Function: pointlist_bounds()

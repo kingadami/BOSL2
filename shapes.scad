@@ -20,11 +20,11 @@
 //
 // Arguments:
 //   size = The size of the cube.
-//   chamfer = Size of chamfer, inset from sides.  Default: No chamferring.
+//   chamfer = Size of chamfer, inset from sides.  Default: No chamfering.
 //   rounding = Radius of the edge rounding.  Default: No rounding.
 //   edges = Edges to chamfer/round.  See the docs for [`edges()`](edges.scad#edges) to see acceptable values.  Default: All edges.
 //   except_edges = Edges to explicitly NOT chamfer/round.  See the docs for [`edges()`](edges.scad#edges) to see acceptable values.  Default: No edges.
-//   trimcorners = If true, rounds or chamfers corners where three chamferred/rounded edges meet.  Default: `true`
+//   trimcorners = If true, rounds or chamfers corners where three chamfered/rounded edges meet.  Default: `true`
 //   p1 = Align the cuboid's corner at `p1`, if given.  Forces `anchor=ALLNEG`.
 //   p2 = If given with `p1`, defines the cornerpoints of the cuboid.
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#anchor).  Default: `CENTER`
@@ -186,7 +186,6 @@ module cuboid(
 				}
 			} else if (rounding != undef) {
 				sides = quantup(segs(rounding),4);
-				sc = 1/cos(180/sides);
 				if (edges == EDGES_ALL) {
 					if(rounding<0) {
 						cube(size, center=true);
@@ -206,12 +205,12 @@ module cuboid(
 						minkowski() {
 							cube(isize, center=true);
 							if (trimcorners) {
-								sphere(r=rounding*sc, $fn=sides);
+								sphere(r=rounding, $fn=sides);
 							} else {
 								intersection() {
-									zrot(180/sides) cylinder(r=rounding*sc, h=rounding*2, center=true, $fn=sides);
-									rotate([90,0,0]) zrot(180/sides) cylinder(r=rounding*sc, h=rounding*2, center=true, $fn=sides);
-									rotate([0,90,0]) zrot(180/sides) cylinder(r=rounding*sc, h=rounding*2, center=true, $fn=sides);
+									cylinder(r=rounding, h=rounding*2, center=true, $fn=sides);
+									rotate([90,0,0]) cylinder(r=rounding, h=rounding*2, center=true, $fn=sides);
+									rotate([0,90,0]) cylinder(r=rounding, h=rounding*2, center=true, $fn=sides);
 								}
 							}
 						}
@@ -270,7 +269,7 @@ module cuboid(
 										rotate(majrots[axis]) cube([rounding*2, rounding*2, size[axis]+0.1], center=true);
 									}
 									translate(vmul(EDGE_OFFSETS[axis][i], size/2 - [1,1,1]*rounding)) {
-										rotate(majrots[axis]) zrot(180/sides) cylinder(h=size[axis]+0.2, r=rounding*sc, center=true, $fn=sides);
+										rotate(majrots[axis]) cylinder(h=size[axis]+0.2, r=rounding, center=true, $fn=sides);
 									}
 								}
 							}
@@ -285,7 +284,7 @@ module cuboid(
 											cube(rounding*2, center=true);
 										}
 										translate(vmul([xa,ya,za], size/2-[1,1,1]*rounding)) {
-											zrot(180/sides) sphere(r=rounding*sc*sc, $fn=sides);
+											sphere(r=rounding, $fn=sides);
 										}
 									}
 								}
@@ -1193,7 +1192,7 @@ module pie_slice(
 //
 // Description:
 //   Creates a shape that can be unioned into a concave joint between two faces, to fillet them.
-//   Center this part along the concave edge to be chamferred and union it in.
+//   Center this part along the concave edge to be chamfered and union it in.
 //
 // Usage:
 //   interior_fillet(l, r, [ang], [overlap]);

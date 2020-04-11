@@ -47,9 +47,10 @@ function find_convex_vertex(points, face, facenorm, i=0) =
 		p1=points[face[(i+1)%count]],
 		p2=points[face[(i+2)%count]]
 	)
-	(len(face)>i)?
-		(cross(p1-p0, p2-p1)*facenorm>0)? (i+1)%count : find_convex_vertex(points, face, facenorm, i+1)
-	: //This should never happen since there is at least 1 convex vertex.
+	(len(face)>i)? (
+		(cross(p1-p0, p2-p1)*facenorm>0)? (i+1)%count :
+		find_convex_vertex(points, face, facenorm, i+1)
+	) : //This should never happen since there is at least 1 convex vertex.
 		undef
 ;
 
@@ -89,9 +90,10 @@ function _check_point_in_ear(point, tests) =
 // Arguments:
 //   v = The array to normalize.
 function normalize_vertex_perimeter(v) =
-	(len(v) < 2)? v :
-		(v[len(v)-1] != v[0])? v :
-			[for (i=[0:1:len(v)-2]) v[i]]
+	let(lv = len(v))
+	(lv < 2)? v :
+		(v[lv-1] != v[0])? v :
+			[for (i=[0:1:lv-2]) v[i]]
 ;
 
 
@@ -137,7 +139,10 @@ function triangulate_face(points, face) =
 	(count == 3)? [face] :
 	let(
 		facenorm=face_normal(points, face),
-		cv=find_convex_vertex(points, face, facenorm),
+		cv=find_convex_vertex(points, face, facenorm)
+	)
+	assert(!is_undef(cv), "Cannot triangulate self-crossing face perimeters.")
+	let(
 		pv=(count+cv-1)%count,
 		nv=(cv+1)%count,
 		p0=points[face[pv]],
@@ -181,12 +186,10 @@ function triangulate_face(points, face) =
 //   faces = Array of faces for the polyhedron. Each face is a list of 3 or more indices into the `points` array.
 function triangulate_faces(points, faces) =
 	[
-		for (i=[0:1:len(faces)-1])
-			let(facet = normalize_vertex_perimeter(faces[i]))
-			for (face = triangulate_face(points, facet))
-				if (face[0]!=face[1] && face[1]!=face[2] && face[2]!=face[0]) face
-	]
-;
+		for (face=faces) each
+		len(face)==3? [face] :
+		triangulate_face(points, normalize_vertex_perimeter(face))
+	];
 
 
 // vim: noexpandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
